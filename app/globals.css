@@ -35,11 +35,6 @@
   --border-heavy: rgba(217, 217, 227, 0.3);
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
 
 html, body {
   height: 100vh;
@@ -71,15 +66,6 @@ html, body {
   background: var(--gray-500);
 }
 
-::selection {
-  background: var(--green-500);
-  color: white;
-}
-
-*:focus-visible {
-  outline: 2px solid var(--green-500);
-  outline-offset: 2px;
-}
 
 @keyframes fadeIn {
   from {

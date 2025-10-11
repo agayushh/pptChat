@@ -4,7 +4,11 @@ import { ImagePreview } from "./ImageUpload";
 import { FileUpload, FilePreview } from "./FileUpload";
 
 type Props = {
-  onSend: (content: string, images?: File[], files?: ProcessedFile[]) => Promise<void> | void;
+  onSend: (
+    content: string,
+    images?: File[],
+    files?: ProcessedFile[]
+  ) => Promise<void> | void;
   disabled?: boolean;
 };
 
@@ -19,8 +23,6 @@ interface ProcessedFile {
   [key: string]: any;
 }
 
-
-
 export default function Composer({ onSend, disabled }: Props) {
   const [value, setValue] = useState("");
   const [sending, setSending] = useState(false);
@@ -34,31 +36,34 @@ export default function Composer({ onSend, disabled }: Props) {
   // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${Math.min(
+        textareaRef.current.scrollHeight,
+        200
+      )}px`;
     }
   }, [value]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     if (files.length > 0) {
-      setSelectedImages(prev => [...prev, ...files]);
+      setSelectedImages((prev) => [...prev, ...files]);
     }
   };
 
   const removeImage = (index: number) => {
-    setSelectedImages(prev => prev.filter((_, i) => i !== index));
+    setSelectedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const clearAllImages = () => {
     setSelectedImages([]);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
   const removeFile = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const clearAllFiles = () => {
@@ -66,20 +71,27 @@ export default function Composer({ onSend, disabled }: Props) {
   };
 
   async function submit() {
-    if ((!value.trim() && selectedImages.length === 0 && selectedFiles.length === 0) || sending) return;
+    if (
+      (!value.trim() &&
+        selectedImages.length === 0 &&
+        selectedFiles.length === 0) ||
+      sending
+    )
+      return;
     setSending(true);
+    setValue("");
+    setSelectedImages([]);
+    setSelectedFiles([]);
+    setShowFileUpload(false);
     try {
       await onSend(
-        value.trim(), 
+        value.trim(),
         selectedImages.length > 0 ? selectedImages : undefined,
         selectedFiles.length > 0 ? selectedFiles : undefined
       );
-      setValue("");
-      setSelectedImages([]);
-      setSelectedFiles([]);
-      setShowFileUpload(false);
+      // console.log(value);
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     } finally {
       setSending(false);
@@ -111,8 +123,8 @@ export default function Composer({ onSend, disabled }: Props) {
                 Remove All
               </button>
             </div>
-            <ImagePreview 
-              images={selectedImages} 
+            <ImagePreview
+              images={selectedImages}
               onRemoveImage={removeImage}
               className="gap-3"
             />
@@ -123,26 +135,42 @@ export default function Composer({ onSend, disabled }: Props) {
           <div className="flex items-center gap-3 px-5 py-4">
             {/* Plus button */}
             <div className="flex-shrink-0">
-              <button 
+              <button
                 className="w-10 h-10 flex items-center justify-center text-[#acacbe] hover:text-white transition-colors rounded-lg hover:bg-[#565869]"
                 title="Add"
               >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19"/>
-                  <line x1="5" y1="12" x2="19" y2="12"/>
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
               </button>
             </div>
 
             {/* Tools button */}
             <div className="flex-shrink-0">
-              <button 
+              <button
                 className="flex items-center gap-2 px-3 py-2 text-sm text-[#acacbe] hover:text-white transition-colors rounded-lg hover:bg-[#565869]"
                 title="Tools"
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="3"/>
-                  <path d="M3 12h4M17 12h4M12 3v4M12 17v4"/>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M3 12h4M17 12h4M12 3v4M12 17v4" />
                 </svg>
                 <span className="text-sm font-medium">Tools</span>
               </button>
@@ -173,30 +201,48 @@ export default function Composer({ onSend, disabled }: Props) {
             {/* Right side buttons */}
             <div className="flex items-center gap-2">
               {/* Microphone button */}
-              <button 
+              <button
                 className="w-10 h-10 flex items-center justify-center text-[#acacbe] hover:text-white transition-colors rounded-lg hover:bg-[#565869]"
                 title="Voice input"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-                  <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/>
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" />
                 </svg>
               </button>
 
               {/* Voice mode button */}
-              <button 
+              <button
                 className="w-10 h-10 flex items-center justify-center text-[#acacbe] hover:text-white transition-colors rounded-lg hover:bg-[#565869]"
                 title="Voice mode"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 2v20M2 12l10 10M22 12l-10 10"/>
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M12 2v20M2 12l10 10M22 12l-10 10" />
                 </svg>
               </button>
 
               {/* Send button */}
               <button
                 onClick={submit}
-                disabled={disabled || sending || (!value.trim() && selectedImages.length === 0)}
+                disabled={
+                  disabled ||
+                  sending ||
+                  (!value.trim() && selectedImages.length === 0)
+                }
                 className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
                   (value.trim() || selectedImages.length > 0) && !sending
                     ? "bg-white text-black hover:bg-[#d9d9e3]"
@@ -206,13 +252,29 @@ export default function Composer({ onSend, disabled }: Props) {
               >
                 {sending ? (
                   <div className="animate-spin">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10"/>
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <circle cx="12" cy="12" r="10" />
                     </svg>
                   </div>
                 ) : (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m5 12 7-7 7 7M12 5v14"/>
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="m5 12 7-7 7 7M12 5v14" />
                   </svg>
                 )}
               </button>
