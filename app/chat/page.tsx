@@ -27,6 +27,13 @@ export default function ChatPage() {
     isLoading: chatsLoading,
   } = useChats();
 
+  function handleToggleSidebar() {
+    setSidebarOpen(prev => {
+      localStorage.setItem('sidebarOpen', (!prev).toString());
+      return !prev;
+    });
+  }
+
   // Sync user data when user loads
   useEffect(() => {
     if (isLoaded && user) {
@@ -39,10 +46,15 @@ export default function ChatPage() {
 
   // Keyboard shortcut for sidebar toggle
   useEffect(() => {
+    const savedSidebarOpen = localStorage.getItem('sidebarOpen');
+    if (savedSidebarOpen) {
+      setSidebarOpen(savedSidebarOpen === 'true');
+    }
+    
     const handleKeyDown = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'S') {
         event.preventDefault();
-        setSidebarOpen(prev => !prev);
+        handleToggleSidebar();
       }
     };
 
@@ -89,7 +101,7 @@ export default function ChatPage() {
         <ChatWindow 
           chat={getActiveChat} 
           sidebarOpen={sidebarOpen}
-          onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+          onToggleSidebar={handleToggleSidebar}
           onEditMessage={(messageId, newContent) => {
             if (activeChatId) {
               editMessage(activeChatId, messageId, newContent);

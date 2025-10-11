@@ -27,7 +27,7 @@ export default function ChatWindow({
         {/* Left side - Toggle Button */}
         <button
           onClick={onToggleSidebar}
-          className="flex items-center justify-center w-8 h-8 text-[#8e8ea0] hover:text-[#f7f7f8] hover:bg-[#2a2a2a] rounded-lg transition-colors"
+          className="flex items-center justify-center w-8 h-8 text-[#8e8ea0] hover:text-[#f7f7f8] hover:bg-[#2a2a2a] rounded-lg transition-colors cursor-pointer"
           title={sidebarOpen ? "Close sidebar" : "Open sidebar"}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

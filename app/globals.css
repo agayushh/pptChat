@@ -35,7 +35,6 @@
   --border-heavy: rgba(217, 217, 227, 0.3);
 }
 
-
 html, body {
   height: 100vh;
   width: 100vw;
@@ -65,7 +64,6 @@ html, body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--gray-500);
 }
-
 
 @keyframes fadeIn {
   from {

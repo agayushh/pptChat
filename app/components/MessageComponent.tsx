@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { Message } from "@/app/lib/hooks/useChat";
+import Markdown from "react-markdown";
 
 interface MessageComponentProps {
   message: Message;
@@ -110,7 +111,8 @@ export default function MessageComponent({
         ) : (
           <div className="prose prose-invert max-w-none text-[#ececf1] leading-7">
             <div className="whitespace-pre-wrap break-words">
-              {message.content}
+              {/* {message.content} */}
+              <Markdown>{message.content}</Markdown>
             </div>
             
             {/* Display images if present */}
