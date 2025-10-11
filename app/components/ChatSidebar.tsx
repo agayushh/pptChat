@@ -25,6 +25,7 @@ type Props = {
   onDelete: (id: string) => void;
   onRename: (id: string, title: string) => void;
   isOpen?: boolean;
+  onClose?: () => void;
   user?: {
     imageUrl?: string | null;
     firstName?: string | null;
@@ -41,11 +42,62 @@ export default function Sidebar({
   onDelete,
   onRename,
   isOpen = true,
+  onClose,
   user,
 }: Props) {
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+
+  // Swipe to close on mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStart - touchEnd > 75) {
+      // Swipe left to close
+      onClose?.();
+    }
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
+
   return (
-    <div className={`w-[260px] flex-shrink-0 bg-[#171717] h-full flex flex-col transition-all duration-300 ease-in-out border-r border-[#2f2f2f]  ${isOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
+    <div 
+      className={`
+        fixed md:relative inset-y-0 left-0 z-40
+        w-[280px] md:w-[260px] flex-shrink-0 bg-[#171717] h-full flex flex-col 
+        transition-transform duration-300 ease-in-out 
+        border-r border-[#2f2f2f]
+        md:translate-x-0
+        ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        shadow-2xl md:shadow-none
+      `}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Mobile swipe indicator */}
+      <div className="md:hidden absolute right-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-[#4a4a4a] rounded-l-full opacity-50" />
+      
+      {/* Mobile header with close button */}
+      <div className="md:hidden flex items-center justify-between px-4 py-3 border-b border-[#2f2f2f]">
+        <h2 className="text-lg font-semibold text-white">Chat History</h2>
+        <button
+          onClick={onClose}
+          className="p-2 text-[#8e8ea0] hover:text-white hover:bg-[#2a2a2a] rounded-lg transition-all duration-200"
+          aria-label="Close sidebar"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
 
       <div className="flex-shrink-0 px-2 py-3 space-y-1">
         <button

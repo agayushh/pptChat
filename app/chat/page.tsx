@@ -10,6 +10,7 @@ import useChats from "../lib/hooks/useChat";
 
 export default function ChatPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const { user, isLoaded } = useUser()
   
   const {
@@ -33,6 +34,25 @@ export default function ChatPage() {
       return !prev;
     });
   }
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      // On desktop, restore saved preference; on mobile, default to closed
+      if (!mobile) {
+        const savedSidebarOpen = localStorage.getItem('sidebarOpen');
+        setSidebarOpen(savedSidebarOpen !== 'false');
+      } else {
+        setSidebarOpen(false);
+      }
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Sync user data when user loads
   useEffect(() => {
@@ -83,19 +103,32 @@ export default function ChatPage() {
 
   return (
     <div className="h-screen w-screen flex bg-[#212121] text-white overflow-hidden">
-      {/* Sidebar with toggle */}
-      <div className={`${sidebarOpen ? 'w-[260px]' : 'w-0'} transition-all duration-300 ease-in-out overflow-hidden`}>
-        <Sidebar
-          chats={chats}
-          activeChatId={activeChatId}
-          onNew={() => newChat()}
-          onSelect={(id) => setActiveChatId(id)}
-          onDelete={(id) => deleteChat(id)}
-          onRename={(id, title) => renameChat(id, title)}
-          isOpen={sidebarOpen}
-          user={user}
+      {/* Mobile backdrop */}
+      {sidebarOpen && isMobile && (
+        <div 
+          className="fixed inset-0 bg-black/60 z-30 md:hidden backdrop-blur-sm transition-opacity duration-300"
+          onClick={() => setSidebarOpen(false)}
         />
-      </div>
+      )}
+      
+      {/* Sidebar */}
+      <Sidebar
+        chats={chats}
+        activeChatId={activeChatId}
+        onNew={() => {
+          newChat();
+          if (isMobile) setSidebarOpen(false);
+        }}
+        onSelect={(id) => {
+          setActiveChatId(id);
+          if (isMobile) setSidebarOpen(false);
+        }}
+        onDelete={(id) => deleteChat(id)}
+        onRename={(id, title) => renameChat(id, title)}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        user={user}
+      />
       
       <div className="flex-1 flex flex-col">
         <ChatWindow 

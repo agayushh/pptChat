@@ -2,11 +2,21 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ImagePreview } from "./ImageUpload";
 import { FileUpload, FilePreview } from "./FileUpload";
-import { Plus, Paperclip, SendHorizontal, CircleDashed, Mic, Headphones } from 'lucide-react';
-
+import {
+  Plus,
+  Paperclip,
+  SendHorizontal,
+  CircleDashed,
+  Mic,
+  Headphones,
+} from "lucide-react";
 
 type Props = {
-  onSend: (content: string, images?: File[], files?: ProcessedFile[]) => Promise<void> | void;
+  onSend: (
+    content: string,
+    images?: File[],
+    files?: ProcessedFile[]
+  ) => Promise<void> | void;
   disabled?: boolean;
 };
 
@@ -21,8 +31,6 @@ interface ProcessedFile {
   [key: string]: any;
 }
 
-
-
 export default function Composer({ onSend, disabled }: Props) {
   const [value, setValue] = useState("");
   const [sending, setSending] = useState(false);
@@ -36,31 +44,34 @@ export default function Composer({ onSend, disabled }: Props) {
   // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${Math.min(
+        textareaRef.current.scrollHeight,
+        200
+      )}px`;
     }
   }, [value]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     if (files.length > 0) {
-      setSelectedImages(prev => [...prev, ...files]);
+      setSelectedImages((prev) => [...prev, ...files]);
     }
   };
 
   const removeImage = (index: number) => {
-    setSelectedImages(prev => prev.filter((_, i) => i !== index));
+    setSelectedImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const clearAllImages = () => {
     setSelectedImages([]);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
   const removeFile = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const clearAllFiles = () => {
@@ -68,11 +79,17 @@ export default function Composer({ onSend, disabled }: Props) {
   };
 
   async function submit() {
-    if ((!value.trim() && selectedImages.length === 0 && selectedFiles.length === 0) || sending) return;
+    if (
+      (!value.trim() &&
+        selectedImages.length === 0 &&
+        selectedFiles.length === 0) ||
+      sending
+    )
+      return;
     setSending(true);
     try {
       await onSend(
-        value.trim(), 
+        value.trim(),
         selectedImages.length > 0 ? selectedImages : undefined,
         selectedFiles.length > 0 ? selectedFiles : undefined
       );
@@ -81,7 +98,7 @@ export default function Composer({ onSend, disabled }: Props) {
       setSelectedFiles([]);
       setShowFileUpload(false);
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     } finally {
       setSending(false);
@@ -113,25 +130,23 @@ export default function Composer({ onSend, disabled }: Props) {
                 Remove All
               </button>
             </div>
-            <ImagePreview 
-              images={selectedImages} 
+            <ImagePreview
+              images={selectedImages}
               onRemoveImage={removeImage}
               className="gap-3"
             />
           </div>
         )}
 
-        <div className="relative bg-[#40414f] rounded-full shadow-sm transition-all duration-200">
+        <div className="relative bg-[#40414f] rounded-3xl shadow-sm transition-all duration-200">
           <div className="flex items-center gap-3 px-4 py-2">
-            
-          <button 
+            <button
               className="w-10 h-10 flex-shrink-0 flex items-center justify-center text-[#acacbe] hover:text-white transition-colors rounded-full hover:bg-[#565869]"
               title="Add files"
               onClick={() => fileInputRef.current?.click()}
             >
               <Paperclip size={20} />
             </button>
-
 
             {/* Image upload button (hidden input) */}
             <input
@@ -158,7 +173,11 @@ export default function Composer({ onSend, disabled }: Props) {
             {/* Send button */}
             <button
               onClick={submit}
-              disabled={disabled || sending || (!value.trim() && selectedImages.length === 0)}
+              disabled={
+                disabled ||
+                sending ||
+                (!value.trim() && selectedImages.length === 0)
+              }
               className={`w-10 h-10 flex-shrink-0 rounded-full flex items-center justify-center transition-all duration-200 ${
                 (value.trim() || selectedImages.length > 0) && !sending
                   ? "bg-white text-black hover:bg-[#d9d9e3]"
@@ -168,7 +187,7 @@ export default function Composer({ onSend, disabled }: Props) {
             >
               {sending ? (
                 <div className="animate-spin">
-                 <CircleDashed size={20}/>
+                  <CircleDashed size={20} />
                 </div>
               ) : (
                 <SendHorizontal size={20} />
