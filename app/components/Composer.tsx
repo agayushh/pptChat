@@ -3,16 +3,14 @@ import React, { useState, useRef, useEffect } from "react";
 import { ImagePreview } from "./ImageUpload";
 import { FileUpload, FilePreview } from "./FileUpload";
 import {
-  Plus,
   Paperclip,
   SendHorizontal,
   CircleDashed,
-  Mic,
-  Headphones,
   Image as ImageIcon,
   FileText,
   X,
 } from "lucide-react";
+import type { ProcessedFile } from "../types/files";
 
 type Props = {
   onSend: (
@@ -22,17 +20,6 @@ type Props = {
   ) => Promise<void> | void;
   disabled?: boolean;
 };
-
-interface ProcessedFile {
-  name: string;
-  size: number;
-  type: string;
-  content: string;
-  contentLength: number;
-  originalSize: number;
-  lastModified?: number;
-  [key: string]: any;
-}
 
 export default function Composer({ onSend, disabled }: Props) {
   const [value, setValue] = useState("");
@@ -44,7 +31,6 @@ export default function Composer({ onSend, disabled }: Props) {
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const attachMenuRef = useRef<HTMLDivElement>(null);
 
   // Auto-resize textarea

@@ -6,7 +6,7 @@ import { Readable } from 'stream';
 // Dynamic import for pdf-parse to handle CommonJS module
 const parsePdf = async (buffer: Buffer) => {
   const pdfParseModule = await import('pdf-parse');
-  // @ts-ignore - pdf-parse has complex module structure
+  // @ts-expect-error - pdf-parse has complex module structure
   const pdfParse = pdfParseModule.default || pdfParseModule;
   return await pdfParse(buffer);
 };
@@ -60,7 +60,19 @@ export async function POST(request: NextRequest) {
       try {
         const buffer = Buffer.from(await file.arrayBuffer());
         let extractedText = '';
-        let metadata: any = {
+        let metadata: {
+          name: string;
+          size: number;
+          type: string;
+          lastModified: number;
+          error?: string;
+          numPages?: number;
+          pages?: number;
+          pdfInfo?: Record<string, unknown>;
+          info?: Record<string, unknown>;
+          version?: string;
+          hasImages?: boolean;
+        } = {
           name: file.name,
           size: file.size,
           type: file.type,
@@ -84,12 +96,16 @@ export async function POST(request: NextRequest) {
                 info: pdfData.info,
                 version: pdfData.version,
               };
-            } catch (pdfError: any) {
+            } catch (pdfError) {
               console.error('PDF parsing error:', pdfError);
-              extractedText = `PDF file: ${file.name}\nSize: ${(file.size / 1024 / 1024).toFixed(2)} MB\n\n[Error extracting PDF text: ${pdfError.message}. The PDF might contain scanned images or be password protected.]`;
+              const errorMessage = pdfError instanceof Error ? pdfError.message : 'Unknown error';
+              extractedText = `PDF file: ${file.name}
+Size: ${(file.size / 1024 / 1024).toFixed(2)} MB
+
+[Error extracting PDF text: ${errorMessage}. The PDF might contain scanned images or be password protected.]`;
               metadata = {
                 ...metadata,
-                error: pdfError.message,
+                error: errorMessage,
               };
             }
             break;
@@ -141,10 +157,11 @@ export async function POST(request: NextRequest) {
           originalSize: file.size,
         });
 
-      } catch (fileError: any) {
+      } catch (fileError) {
         console.error(`Error processing file ${file.name}:`, fileError);
+        const errorMessage = fileError instanceof Error ? fileError.message : 'Unknown error';
         return NextResponse.json(
-          { error: `Failed to process file: ${file.name}. ${fileError.message || 'Unknown error'}` },
+          { error: `Failed to process file: ${file.name}. ${errorMessage}` },
           { status: 400 }
         );
       }
@@ -158,7 +175,7 @@ export async function POST(request: NextRequest) {
       totalContentLength: processedFiles.reduce((sum, file) => sum + file.contentLength, 0),
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('File upload error:', error);
     return NextResponse.json(
       { error: 'Failed to process files' },
@@ -170,12 +187,12 @@ export async function POST(request: NextRequest) {
 // Helper function to parse CSV content
 async function parseCSV(buffer: Buffer): Promise<string> {
   return new Promise((resolve, reject) => {
-    const results: any[] = [];
+    const results: Record<string, string>[] = [];
     const readable = Readable.from(buffer);
     
     readable
       .pipe(csv())
-      .on('data', (row: Record<string, any>) => results.push(row))
+      .on('data', (row: Record<string, string>) => results.push(row))
       .on('end', () => {
         // Convert CSV data to readable text format
         if (results.length === 0) {

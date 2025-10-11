@@ -140,7 +140,7 @@ export function smartTrimMessages(
   const importantMessages = new Set<string>();
   
   // Mark messages with important keywords
-  messages.forEach((message, index) => {
+  messages.forEach((message) => {
     const hasImportantKeyword = preserveImportantKeywords.some(keyword =>
       message.content.toLowerCase().includes(keyword.toLowerCase())
     );

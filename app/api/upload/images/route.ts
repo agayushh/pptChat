@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import sharp from 'sharp';
 
 // Configuration constants
-const MAX_DURATION = 30; // 30 seconds timeout
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const SUPPORTED_FORMATS = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 

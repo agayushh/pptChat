@@ -21,7 +21,7 @@ export async function POST(req: Request) {
       try {
         const { userId: clerkUserId } = await auth();
         currentUserId = clerkUserId;
-      } catch (error) {
+      } catch {
         console.warn('Could not get user ID from Clerk auth');
       }
     }
@@ -113,7 +113,7 @@ ${contextSummary}`;
       files?: ProcessedFile[];
     }) => {
       if (message.role === 'user') {
-        const contentParts: any[] = [];
+        const contentParts: Array<{ type: string; text?: string; image?: string }> = [];
         
         // Add the main text content
         let textContent = message.content;
@@ -169,7 +169,7 @@ ${contextSummary}`;
           ).join('\n');
           
           // Update the text part
-          const textPart = lastMessage.content.find((p: any) => p.type === 'text');
+          const textPart = lastMessage.content.find((p: { type: string; text?: string }) => p.type === 'text');
           if (textPart) {
             textPart.text += `\n\n[User has attached the following document(s):${filesContext}]`;
           }

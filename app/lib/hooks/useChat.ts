@@ -3,7 +3,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
-import { uid } from "@/app/utils/id";
+import { uid } from '@/app/utils/id';
+import type { ProcessedFile } from '@/app/types/files';
 import { getContextInfo, type ModelType } from "@/app/lib/contextWindow";
 
 export type Message = {
@@ -27,17 +28,6 @@ interface ProcessedImage {
   width?: number;
   height?: number;
   format?: string;
-}
-
-interface ProcessedFile {
-  name: string;
-  size: number;
-  type: string;
-  content: string;
-  contentLength: number;
-  originalSize: number;
-  lastModified?: number;
-  [key: string]: any;
 }
 
 export type Chat = {

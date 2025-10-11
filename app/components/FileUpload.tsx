@@ -1,16 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
-
-interface ProcessedFile {
-  name: string;
-  size: number;
-  type: string;
-  content: string;
-  contentLength: number;
-  originalSize: number;
-  lastModified?: number;
-  [key: string]: any;
-}
+import type { ProcessedFile } from '../types/files';
 
 interface FileUploadProps {
   onFilesSelected: (files: ProcessedFile[]) => void;
@@ -118,7 +108,7 @@ export function FileUpload({
       setSelectedFiles(newFiles);
       await processFiles(filesToAdd);
     }
-  }, [selectedFiles, maxFiles, maxSizePerFile, disabled, isProcessing, onFilesSelected, processedFiles]);
+  }, [selectedFiles, maxFiles, maxSizePerFile, disabled, isProcessing, processFiles]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,

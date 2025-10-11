@@ -7,6 +7,7 @@ import ChatWindow from "../components/ChatWindow";
 import Composer from "../components/Composer";
 import MemoryPanel from "../components/MemoryPanel";
 import useChats from "../lib/hooks/useChat";
+import type { ProcessedFile } from "../types/files";
 
 export default function ChatPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -82,7 +83,7 @@ export default function ChatPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const handleSend = async (content: string, images?: File[], files?: any[]) => {
+  const handleSend = async (content: string, images?: File[], files?: ProcessedFile[]) => {
     if (!activeChatId) return;
     await sendMessage(activeChatId, content, images, files);
   };

@@ -29,7 +29,7 @@ export default function ChatWindow({
       // Smooth scroll to bottom
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [chat?.messages.length]);
+  }, [chat, chat?.messages.length]);
 
   return (
     <div className="flex-1 flex flex-col bg-[#212121] overflow-hidden">
