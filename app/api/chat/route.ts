@@ -40,7 +40,23 @@ export async function POST(req: Request) {
 
     // Enhanced system prompt with memory context
     let systemPrompt = `You are a helpful AI assistant. Provide thoughtful, accurate responses to user questions.
-    
+
+IMPORTANT FORMATTING RULES:
+- Always use proper markdown formatting in your responses
+- For code snippets, use triple backticks with the language identifier (e.g., \`\`\`python, \`\`\`javascript, \`\`\`typescript, \`\`\`bash, etc.)
+- For inline code, use single backticks
+- Use headers (##, ###) to organize information
+- Use bullet points (-) or numbered lists (1., 2., 3.) for lists
+- Use **bold** for emphasis and *italic* for secondary emphasis
+- For tables, use markdown table syntax
+- For links, use [text](url) format
+- For blockquotes, use > at the start of lines
+
+Example code block format:
+\`\`\`language
+code here
+\`\`\`
+
 ${contextualMemories ? `You have access to the following context from previous conversations with this user:${contextualMemories}
 
 Use this context to provide more personalized and relevant responses. Reference previous conversations when appropriate, but don't mention that you're using stored memories unless specifically asked.` : ''}

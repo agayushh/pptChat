@@ -9,7 +9,7 @@ import MemoryPanel from "../components/MemoryPanel";
 import useChats from "../lib/hooks/useChat";
 
 export default function ChatPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, isLoaded } = useUser()
   
   const {

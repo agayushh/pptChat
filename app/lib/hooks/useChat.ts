@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -197,6 +198,12 @@ export default function useChats() {
 
   const sendMessage = useCallback(
     async (chatId: string, content: string, images?: File[], model: ModelType = 'gemini-2.5-flash') => {
+      console.log('Sending message to chat:', chatId);
+      console.log('Content:', content);
+      console.log('Images:', images);
+      console.log('Model:', model);
+      
+      
       if (!content.trim() && (!images || images.length === 0)) return;
       if (isChatLoading) return;
 
@@ -294,55 +301,25 @@ export default function useChats() {
           if (done) break;
 
           const chunk = decoder.decode(value);
-          const lines = chunk.split('\n');
-
-          for (const line of lines) {
-            if (line.trim() === '') continue;
-            
-            try {
-              // Try to parse the line directly as JSON first
-              let data;
-              
-              if (line.startsWith('0:')) {
-                // Handle Vercel AI SDK format
-                const jsonStr = line.substring(2);
-                data = JSON.parse(jsonStr);
-              } else if (line.startsWith('data: ')) {
-                // Handle SSE format
-                const jsonStr = line.substring(6);
-                if (jsonStr === '[DONE]') break;
-                data = JSON.parse(jsonStr);
-              } else {
-                // Try direct JSON parse
-                data = JSON.parse(line);
-              }
-              
-              if (data && (data.content || data.text || data.delta?.content)) {
-                const content = data.content || data.text || data.delta?.content;
-                accumulatedContent += content;
-                
-                // Update the assistant message with accumulated content
-                setChats((s) =>
-                  s.map((c) =>
-                    c.id === chatId
-                      ? {
-                          ...c,
-                          messages: c.messages.map(m =>
-                            m.id === assistantMessageId
-                              ? { ...m, content: accumulatedContent }
-                              : m
-                          ),
-                          updatedAt: new Date().toISOString(),
-                        }
-                      : c
-                  )
-                );
-              }
-            } catch (e) {
-              // Skip invalid JSON lines
-              console.log('Skipping line:', line);
-            }
-          }
+          // Vercel AI SDK's toTextStreamResponse() returns plain text chunks
+          accumulatedContent += chunk;
+          
+          // Update the assistant message with accumulated content
+          setChats((s) =>
+            s.map((c) =>
+              c.id === chatId
+                ? {
+                    ...c,
+                    messages: c.messages.map(m =>
+                      m.id === assistantMessageId
+                        ? { ...m, content: accumulatedContent }
+                        : m
+                    ),
+                    updatedAt: new Date().toISOString(),
+                  }
+                : c
+            )
+          );
         }
       } catch (error) {
         console.error('Error sending message:', error);

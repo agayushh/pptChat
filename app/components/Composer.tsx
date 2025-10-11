@@ -94,8 +94,8 @@ export default function Composer({ onSend, disabled }: Props) {
   };
 
   return (
-    <div className="flex-shrink-0 bg-gradient-to-t from-[#212121] via-[#1f1f1f] to-[#1a1a1a] p-6 border-t border-[#2a2a2a]">
-      <div className="w-full max-w-4xl mx-auto">
+    <div className="flex-shrink-0 bg-[#212121] pb-8 pt-4">
+      <div className="w-full max-w-3xl mx-auto px-4">
         {/* Image previews */}
         {selectedImages.length > 0 && (
           <div className="mb-4 p-4 bg-[#2a2a2a] rounded-2xl border border-[#424242]">
@@ -119,36 +119,50 @@ export default function Composer({ onSend, disabled }: Props) {
           </div>
         )}
 
-        <div className="relative bg-gradient-to-r from-[#2f2f2f] to-[#323232] rounded-3xl border border-[#424242] focus-within:border-[#10a37f] focus-within:shadow-lg focus-within:shadow-[#10a37f]/20 transition-all duration-300 shadow-2xl">
-          <div className="flex items-end gap-4 px-6 py-4">
-            {/* Image upload button */}
-            <div className="flex-shrink-0 relative">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleImageUpload}
-                className="hidden"
-              />
+        <div className="relative bg-[#40414f] rounded-[26px] shadow-lg border border-[#565869] hover:border-[#8e8ea0] focus-within:border-[#565869] transition-all duration-200">
+          <div className="flex items-center gap-3 px-5 py-4">
+            {/* Plus button */}
+            <div className="flex-shrink-0">
               <button 
-                onClick={() => fileInputRef.current?.click()}
-                disabled={disabled || sending}
-                className="w-10 h-10 flex items-center justify-center text-[#8e8ea0] hover:text-white transition-all duration-200 rounded-xl hover:bg-gradient-to-r hover:from-[#404040] hover:to-[#454545] group disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-10 h-10 flex items-center justify-center text-[#acacbe] hover:text-white transition-colors rounded-lg hover:bg-[#565869]"
+                title="Add"
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="group-hover:scale-110 transition-transform">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" strokeWidth="2"/>
-                  <circle cx="9" cy="9" r="2" stroke="currentColor" strokeWidth="2"/>
-                  <path d="M21 15l-3.086-3.086a2 2 0 00-2.828 0L6 21" stroke="currentColor" strokeWidth="2"/>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
                 </svg>
               </button>
             </div>
 
+            {/* Tools button */}
+            <div className="flex-shrink-0">
+              <button 
+                className="flex items-center gap-2 px-3 py-2 text-sm text-[#acacbe] hover:text-white transition-colors rounded-lg hover:bg-[#565869]"
+                title="Tools"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M3 12h4M17 12h4M12 3v4M12 17v4"/>
+                </svg>
+                <span className="text-sm font-medium">Tools</span>
+              </button>
+            </div>
+
+            {/* Image upload button (hidden input) */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleImageUpload}
+              className="hidden"
+            />
+
             {/* Textarea */}
             <textarea
               ref={textareaRef}
-              className="flex-1 resize-none bg-transparent text-[#f7f7f8] placeholder-[#8e8ea0] border-none outline-none min-h-[28px] max-h-[200px] leading-7 font-normal text-base"
-              placeholder="Message ChatGPT..."
+              className="flex-1 resize-none bg-transparent text-[#ececf1] placeholder-[#8e8ea0] border-none outline-none min-h-[32px] max-h-[200px] leading-7 text-base py-2 text-center"
+              placeholder="Ask anything"
               value={value}
               onChange={(e) => setValue(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -156,49 +170,54 @@ export default function Composer({ onSend, disabled }: Props) {
               rows={1}
             />
 
-            {/* Send button */}
-            <button
-              onClick={submit}
-              disabled={disabled || sending || (!value.trim() && selectedImages.length === 0)}
-              className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 shadow-lg ${
-                (value.trim() || selectedImages.length > 0) && !sending
-                  ? "bg-gradient-to-r from-[#10a37f] to-[#0e906e] text-white hover:from-[#0e906e] hover:to-[#0c7d5c] hover:shadow-xl hover:scale-105 active:scale-95"
-                  : "bg-[#424242] text-[#8e8ea0] cursor-not-allowed"
-              }`}
-            >
-              {sending ? (
-                <div className="animate-spin">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray="18.85" strokeDashoffset="18.85">
-                      <animate attributeName="stroke-dasharray" dur="1.5s" values="0 18.85;9.425 9.425;0 18.85" repeatCount="indefinite"/>
-                      <animate attributeName="stroke-dashoffset" dur="1.5s" values="0;-9.425;-18.85" repeatCount="indefinite"/>
-                    </circle>
-                  </svg>
-                </div>
-              ) : (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="m5 12 7-7 7 7M12 5v14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            {/* Right side buttons */}
+            <div className="flex items-center gap-2">
+              {/* Microphone button */}
+              <button 
+                className="w-10 h-10 flex items-center justify-center text-[#acacbe] hover:text-white transition-colors rounded-lg hover:bg-[#565869]"
+                title="Voice input"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/>
                 </svg>
-              )}
-            </button>
+              </button>
 
-            {/* Microphone button */}
-            <button className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-[#8e8ea0] hover:text-white transition-colors rounded-lg hover:bg-[#3f3f3f]">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path 
-                  d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" 
-                  stroke="currentColor" 
-                  strokeWidth="2"
-                />
-                <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-            </button>
+              {/* Voice mode button */}
+              <button 
+                className="w-10 h-10 flex items-center justify-center text-[#acacbe] hover:text-white transition-colors rounded-lg hover:bg-[#565869]"
+                title="Voice mode"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2v20M2 12l10 10M22 12l-10 10"/>
+                </svg>
+              </button>
+
+              {/* Send button */}
+              <button
+                onClick={submit}
+                disabled={disabled || sending || (!value.trim() && selectedImages.length === 0)}
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+                  (value.trim() || selectedImages.length > 0) && !sending
+                    ? "bg-white text-black hover:bg-[#d9d9e3]"
+                    : "bg-[#676767] text-[#343541] cursor-not-allowed"
+                }`}
+                title="Send message"
+              >
+                {sending ? (
+                  <div className="animate-spin">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10"/>
+                    </svg>
+                  </div>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m5 12 7-7 7 7M12 5v14"/>
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
-        </div>
-
-        {/* Footer text */}
-        <div className="text-center text-xs text-[#8e8ea0] mt-2">
-          ChatGPT can make mistakes. Check important info.
         </div>
       </div>
     </div>
