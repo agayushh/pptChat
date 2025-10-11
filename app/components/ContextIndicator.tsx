@@ -8,7 +8,7 @@ interface ContextIndicatorProps {
   className?: string;
 }
 
-export function ContextIndicator({ messages, modelType = 'gpt-3.5-turbo', className = '' }: ContextIndicatorProps) {
+export function ContextIndicator({ messages, modelType = 'gemini-2.5-flash', className = '' }: ContextIndicatorProps) {
   const contextInfo = getContextInfo(messages, modelType);
   
   if (messages.length === 0) return null;
@@ -69,7 +69,7 @@ interface ContextTooltipProps {
   children: React.ReactNode;
 }
 
-export function ContextTooltip({ messages, modelType = 'gpt-3.5-turbo', children }: ContextTooltipProps) {
+export function ContextTooltip({ messages, modelType = 'gemini-2.5-flash', children }: ContextTooltipProps) {
   const contextInfo = getContextInfo(messages, modelType);
   
   return (

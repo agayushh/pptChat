@@ -5,7 +5,7 @@ export async function GET() {
   try {
     // Simple test to verify Gemini API key
     const result = await generateText({
-      model: google('gemini-1.5-flash'),
+      model: google('gemini-2.5-flash'),
       prompt: 'Say "Hello, API key is working!" in one sentence.',
     });
 

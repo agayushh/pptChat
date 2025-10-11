@@ -1,10 +1,10 @@
-# ChatGPT Clone
+# Chat- **AI-Powered Chat**: Integrated with Vercel AI SDK and Google Gemini 2.5 FlashPT Clone
 
 A pixel-perfect ChatGPT clone built with Next.js, featuring **Vercel AI SDK** for real-time AI responses, Clerk authentication, and MongoDB Atlas storage.
 
 ## ✨ Features
 
-- 🤖 **AI-Powered Chat**: Integrated with Vercel AI SDK and OpenAI GPT-3.5-turbo
+- 🤖 **AI-Powered Chat**: Integrated with Vercel AI SDK and Google Gemini 1.5 Flash
 - 🔄 **Streaming Responses**: Real-time AI text generation
 - 🔐 **Authentication**: Secure sign-in/sign-up with Clerk
 - 🗄️ **Database**: MongoDB Atlas for chat persistence

@@ -2,6 +2,17 @@ import { Message } from '@/app/lib/hooks/useChat';
 
 // Model context window sizes (in tokens, approximate)
 export const MODEL_CONTEXT_LIMITS = {
+  'gemini-2.5-flash': 1048576,        // 1M tokens
+  'gemini-2.5-pro': 1048576,          // 1M tokens
+  'gemini-2.0-flash': 1048576,        // 1M tokens
+  'gemini-flash-latest': 1048576,     // 1M tokens
+  'gemini-pro-latest': 1048576,       // 1M tokens
+  'gemini-1.5-flash-latest': 1048576, // Legacy support
+  'gemini-1.5-pro-latest': 2097152,   // Legacy support
+  'gemini-1.0-pro': 32768,            // 32K tokens
+  'gemini-pro': 32768,                // Alternative name
+  'gemini-1.5-flash': 1048576,        // Legacy support
+  'gemini-1.5-pro': 2097152,          // Legacy support
   'gpt-3.5-turbo': 4096,
   'gpt-4': 8192,
   'gpt-4-turbo': 128000,

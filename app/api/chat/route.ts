@@ -1,4 +1,4 @@
-import { openai } from '@ai-sdk/openai';
+import { google } from '@ai-sdk/google';
 import { streamText } from 'ai';
 import { memoryService } from '@/app/lib/memory';
 import { auth } from '@clerk/nextjs/server';
@@ -11,7 +11,9 @@ import {
 
 export async function POST(req: Request) {
   try {
-    const { messages, userId, model = 'gpt-3.5-turbo', images = [] } = await req.json();
+    console.log('=== Chat API Request ===');
+    const { messages, userId, model = 'gemini-2.5-flash', images = [] } = await req.json();
+    console.log('Messages:', messages?.length, 'Model:', model);
     
     // Get user ID from Clerk auth if not provided
     let currentUserId = userId;
@@ -124,11 +126,15 @@ ${contextSummary}`;
       }
     }
 
+    console.log('Calling Gemini with model:', model);
+    console.log('Formatted messages count:', formattedMessages.length);
+    
     const result = await streamText({
-      model: openai(model),
+      model: google(model),
       messages: formattedMessages,
       system: systemPrompt,
       onFinish: async (result) => {
+        console.log('Response finished, text length:', result.text?.length);
         // Store the conversation in memory after completion
         if (currentUserId && latestMessage?.role === 'user') {
           await memoryService.processConversation(
@@ -139,6 +145,8 @@ ${contextSummary}`;
         }
       },
     });
+    
+    console.log('Streaming response created successfully');
 
     return result.toTextStreamResponse();
   } catch (error) {

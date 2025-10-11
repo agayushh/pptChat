@@ -277,7 +277,7 @@ await memoryService.processConversation(
 3. **Context not being used**
    - Confirm memories are being retrieved
    - Check if system prompt includes memory context
-   - Verify OpenAI API integration is working
+   - Verify Gemini API integration is working
 
 ### Debug Commands
 

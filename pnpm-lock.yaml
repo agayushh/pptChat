@@ -8,9 +8,9 @@ importers:
 
   .:
     dependencies:
-      '@ai-sdk/openai':
-        specifier: ^2.0.48
-        version: 2.0.48(zod@3.25.76)
+      '@ai-sdk/google':
+        specifier: ^2.0.20
+        version: 2.0.20(zod@3.25.76)
       '@clerk/nextjs':
         specifier: ^6.33.3
         version: 6.33.3(next@15.5.4(@opentelemetry/api@1.9.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -96,8 +96,8 @@ packages:
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/openai@2.0.48':
-    resolution: {integrity: sha512-dIGOVtHaScTNIQzxkE4I8T5PpoutFWxonR/awdRz+5sCpoO7V2kVL44+X6piJbQIMdFYUK/h+HTX3+BjTbRHmw==}
+  '@ai-sdk/google@2.0.20':
+    resolution: {integrity: sha512-+pVkl1GSnORRJEKnjscQEdfW4RR2csVVY8F3QkCHdWjbeSIqrEQw8MWQ4SrtsVLJdAvqyG9WMdiDR7WXSXpn4Q==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -3539,7 +3539,7 @@ snapshots:
       '@vercel/oidc': 3.0.2
       zod: 3.25.76
 
-  '@ai-sdk/openai@2.0.48(zod@3.25.76)':
+  '@ai-sdk/google@2.0.20(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
       '@ai-sdk/provider-utils': 3.0.12(zod@3.25.76)

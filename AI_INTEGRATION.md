@@ -6,7 +6,7 @@ This is a modern ChatGPT clone built with Next.js, featuring real-time AI respon
 
 - **🔐 Authentication**: Powered by Clerk with sign-in/sign-up
 - **🗄️ Database**: MongoDB Atlas for storing chats and user data  
-- **🤖 AI Integration**: Vercel AI SDK with OpenAI GPT-3.5-turbo
+- **🤖 AI Integration**: Vercel AI SDK with Google Gemini 2.5 Flash
 - **💬 Real-time Chat**: Streaming AI responses with live updates
 - **🎨 Modern UI**: Pixel-perfect ChatGPT-inspired interface
 - **📱 Responsive**: Works on all devices
@@ -18,25 +18,25 @@ This is a modern ChatGPT clone built with Next.js, featuring real-time AI respon
 
 1. **Install Dependencies**:
    ```bash
-   pnpm add ai @ai-sdk/openai
+   pnpm add ai @ai-sdk/google
    ```
 
 2. **Environment Variables**:
-   Add your OpenAI API key to `.env.local`:
+   Add your Google AI API key to `.env.local`:
    ```bash
-   OPENAI_API_KEY=your_openai_api_key_here
+   GOOGLE_GENERATIVE_AI_API_KEY=your_google_api_key_here
    ```
 
 3. **API Route** (`app/api/chat/route.ts`):
    ```typescript
-   import { openai } from '@ai-sdk/openai';
+   import { google } from '@ai-sdk/google';
    import { streamText } from 'ai';
 
    export async function POST(req: Request) {
      const { messages } = await req.json();
 
      const result = await streamText({
-       model: openai('gpt-3.5-turbo'),
+       model: google('gemini-2.5-flash'),
        messages,
        system: 'You are a helpful AI assistant.',
      });
@@ -74,7 +74,7 @@ The app includes a comprehensive chat management system:
 
 2. **Environment Setup**:
    - Copy `.env.local.example` to `.env.local`
-   - Add your API keys (Clerk, MongoDB, OpenAI)
+   - Add your API keys (Clerk, MongoDB, Google AI)
 
 3. **Run Development Server**:
    ```bash
@@ -86,7 +86,7 @@ The app includes a comprehensive chat management system:
 ## Tech Stack
 
 - **Framework**: Next.js 15.5.4
-- **AI**: Vercel AI SDK + OpenAI GPT-3.5-turbo
+- **AI**: Vercel AI SDK + Google Gemini 2.5 Flash
 - **Authentication**: Clerk
 - **Database**: MongoDB Atlas
 - **Styling**: Tailwind CSS
@@ -128,9 +128,9 @@ Edit `app/api/chat/route.ts` to change AI model or settings:
 
 ```typescript
 const result = await streamText({
-  model: openai('gpt-4'), // Change model
-  temperature: 0.7,       // Adjust creativity
-  maxTokens: 1000,        // Set response length
+  model: google('gemini-2.5-pro'), // Change model
+  temperature: 0.7,                // Adjust creativity
+  maxTokens: 1000,                 // Set response length
   // ... other options
 });
 ```

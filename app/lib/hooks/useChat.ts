@@ -196,7 +196,7 @@ export default function useChats() {
   );
 
   const sendMessage = useCallback(
-    async (chatId: string, content: string, images?: File[], model: ModelType = 'gpt-3.5-turbo') => {
+    async (chatId: string, content: string, images?: File[], model: ModelType = 'gemini-2.5-flash') => {
       if (!content.trim() && (!images || images.length === 0)) return;
       if (isChatLoading) return;
 
@@ -297,34 +297,50 @@ export default function useChats() {
           const lines = chunk.split('\n');
 
           for (const line of lines) {
-            if (line.startsWith('0:')) {
-              // Extract the JSON content
-              const jsonStr = line.substring(2);
-              try {
-                const data = JSON.parse(jsonStr);
-                if (data.content) {
-                  accumulatedContent += data.content;
-                  
-                  // Update the assistant message with accumulated content
-                  setChats((s) =>
-                    s.map((c) =>
-                      c.id === chatId
-                        ? {
-                            ...c,
-                            messages: c.messages.map(m =>
-                              m.id === assistantMessageId
-                                ? { ...m, content: accumulatedContent }
-                                : m
-                            ),
-                            updatedAt: new Date().toISOString(),
-                          }
-                        : c
-                    )
-                  );
-                }
-              } catch {
-                // Skip invalid JSON
+            if (line.trim() === '') continue;
+            
+            try {
+              // Try to parse the line directly as JSON first
+              let data;
+              
+              if (line.startsWith('0:')) {
+                // Handle Vercel AI SDK format
+                const jsonStr = line.substring(2);
+                data = JSON.parse(jsonStr);
+              } else if (line.startsWith('data: ')) {
+                // Handle SSE format
+                const jsonStr = line.substring(6);
+                if (jsonStr === '[DONE]') break;
+                data = JSON.parse(jsonStr);
+              } else {
+                // Try direct JSON parse
+                data = JSON.parse(line);
               }
+              
+              if (data && (data.content || data.text || data.delta?.content)) {
+                const content = data.content || data.text || data.delta?.content;
+                accumulatedContent += content;
+                
+                // Update the assistant message with accumulated content
+                setChats((s) =>
+                  s.map((c) =>
+                    c.id === chatId
+                      ? {
+                          ...c,
+                          messages: c.messages.map(m =>
+                            m.id === assistantMessageId
+                              ? { ...m, content: accumulatedContent }
+                              : m
+                          ),
+                          updatedAt: new Date().toISOString(),
+                        }
+                      : c
+                  )
+                );
+              }
+            } catch (e) {
+              // Skip invalid JSON lines
+              console.log('Skipping line:', line);
             }
           }
         }
@@ -377,7 +393,7 @@ export default function useChats() {
   const getActiveChat = chats.find((c) => c.id === activeChatId) ?? null;
 
   // Get context information for a chat
-  const getChatContextInfo = useCallback((chatId: string, modelType: ModelType = 'gpt-3.5-turbo') => {
+  const getChatContextInfo = useCallback((chatId: string, modelType: ModelType = 'gemini-2.5-flash') => {
     const chat = chats.find(c => c.id === chatId);
     if (!chat) return null;
     
