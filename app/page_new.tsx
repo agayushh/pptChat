@@ -1,21 +1,14 @@
 "use client";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useUser } from "@clerk/nextjs";
 
 export default function Home() {
   const router = useRouter();
-  const { isSignedIn, isLoaded } = useUser();
 
   useEffect(() => {
-    if (isLoaded) {
-      if (isSignedIn) {
-        router.replace("/chat");
-      } else {
-        router.replace("/sign-in");
-      }
-    }
-  }, [router, isSignedIn, isLoaded]);
+    // Redirect to chat page immediately
+    router.replace("/chat");
+  }, [router]);
 
   return (
     <div className="h-screen bg-[#212121] flex items-center justify-center">

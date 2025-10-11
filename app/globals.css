@@ -1,26 +1,121 @@
 @import "tailwindcss";
 
+/* ChatGPT Exact Color Variables */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --gray-950: #0d0d0d;
+  --gray-900: #171717;
+  --gray-800: #202123;
+  --gray-700: #2d2d30;
+  --gray-600: #424242;
+  --gray-500: #8e8ea0;
+  --gray-400: #acacbe;
+  --gray-300: #d1d1db;
+  --gray-200: #ececf1;
+  --gray-100: #f7f7f8;
+  
+  --green-500: #10a37f;
+  --green-600: #0e906e;
+  --green-700: #0c7d5c;
+  
+  --red-500: #ef4444;
+  --yellow-500: #f59e0b;
+  --blue-500: #3b82f6;
+  
+  --text-primary: #ececf1;
+  --text-secondary: #c5c5d2;
+  --text-tertiary: #8e8ea0;
+  --text-quaternary: #6f6f7d;
+  
+  --bg-primary: var(--gray-800);
+  --bg-secondary: var(--gray-700);
+  --bg-tertiary: var(--gray-600);
+  
+  --border-light: rgba(217, 217, 227, 0.1);
+  --border-medium: rgba(217, 217, 227, 0.2);
+  --border-heavy: rgba(217, 217, 227, 0.3);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+html, body {
+  height: 100vh;
+  width: 100vw;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: "Söhne", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gray-600);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-500);
+}
+
+::selection {
+  background: var(--green-500);
+  color: white;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--green-500);
+  outline-offset: 2px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.message-enter {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.typing-indicator {
+  animation: pulse 1.5s ease-in-out infinite;
 }

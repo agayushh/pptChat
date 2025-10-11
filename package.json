@@ -9,19 +9,33 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^2.0.48",
+    "@clerk/nextjs": "^6.33.3",
+    "@types/multer": "^2.0.0",
+    "ai": "^5.0.68",
+    "clsx": "^2.1.1",
+    "csv-parser": "^3.2.0",
+    "mammoth": "^1.11.0",
+    "mem0ai": "^2.1.38",
+    "mongoose": "^8.19.1",
+    "multer": "^2.0.2",
+    "next": "15.5.4",
+    "pdf-parse": "^2.2.6",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "next": "15.5.4"
+    "react-dropzone": "^14.3.8",
+    "sharp": "^0.34.4"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
-    "@eslint/eslintrc": "^3"
+    "react-markdown": "^10.1.0",
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }

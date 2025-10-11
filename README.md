@@ -1,4 +1,19 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ChatGPT Clone
+
+A pixel-perfect ChatGPT clone built with Next.js, featuring **Vercel AI SDK** for real-time AI responses, Clerk authentication, and MongoDB Atlas storage.
+
+## ✨ Features
+
+- 🤖 **AI-Powered Chat**: Integrated with Vercel AI SDK and OpenAI GPT-3.5-turbo
+- 🔄 **Streaming Responses**: Real-time AI text generation
+- 🔐 **Authentication**: Secure sign-in/sign-up with Clerk
+- 🗄️ **Database**: MongoDB Atlas for chat persistence
+- 🎨 **Modern UI**: ChatGPT-inspired interface with smooth animations
+- 📱 **Responsive Design**: Works perfectly on all devices
+
+## 🚀 AI Integration
+
+This project uses the **Vercel AI SDK** to provide streaming AI responses. See [AI_INTEGRATION.md](./AI_INTEGRATION.md) for detailed documentation on the AI implementation.
 
 ## Getting Started
 
