@@ -82,9 +82,9 @@ export default function ChatPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const handleSend = async (content: string, images?: File[]) => {
+  const handleSend = async (content: string, images?: File[], files?: any[]) => {
     if (!activeChatId) return;
-    await sendMessage(activeChatId, content, images);
+    await sendMessage(activeChatId, content, images, files);
   };
 
   // Show loading spinner while user data is loading

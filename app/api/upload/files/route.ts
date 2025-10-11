@@ -3,6 +3,14 @@ import mammoth from 'mammoth';
 import csv from 'csv-parser';
 import { Readable } from 'stream';
 
+// Dynamic import for pdf-parse to handle CommonJS module
+const parsePdf = async (buffer: Buffer) => {
+  const pdfParseModule = await import('pdf-parse');
+  // @ts-ignore - pdf-parse has complex module structure
+  const pdfParse = pdfParseModule.default || pdfParseModule;
+  return await pdfParse(buffer);
+};
+
 // Configuration
 const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
 const SUPPORTED_FILE_TYPES = [
@@ -62,13 +70,28 @@ export async function POST(request: NextRequest) {
         // Process based on file type
         switch (file.type) {
           case 'application/pdf':
-            // PDF parsing is complex and requires additional setup
-            // For now, we'll indicate PDF support but extract basic info
-            extractedText = `PDF file: ${file.name}\nSize: ${(file.size / 1024 / 1024).toFixed(2)} MB\n\n[PDF content extraction will be implemented in a future update. Please convert to text format for now.]`;
-            metadata = {
-              ...metadata,
-              note: 'PDF parsing requires additional configuration',
-            };
+            try {
+              const pdfData = await parsePdf(buffer);
+              extractedText = pdfData.text.trim();
+              
+              if (!extractedText) {
+                throw new Error('PDF appears to be empty or contains only images');
+              }
+              
+              metadata = {
+                ...metadata,
+                pages: pdfData.numpages,
+                info: pdfData.info,
+                version: pdfData.version,
+              };
+            } catch (pdfError: any) {
+              console.error('PDF parsing error:', pdfError);
+              extractedText = `PDF file: ${file.name}\nSize: ${(file.size / 1024 / 1024).toFixed(2)} MB\n\n[Error extracting PDF text: ${pdfError.message}. The PDF might contain scanned images or be password protected.]`;
+              metadata = {
+                ...metadata,
+                error: pdfError.message,
+              };
+            }
             break;
 
           case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':

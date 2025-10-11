@@ -20,6 +20,8 @@ export default function MessageComponent({
   isLast,
 }: MessageComponentProps) {
   const [editContent, setEditContent] = useState(message.content);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [copied, setCopied] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -29,21 +31,52 @@ export default function MessageComponent({
         textareaRef.current.value.length,
         textareaRef.current.value.length
       );
+      // Auto-resize textarea
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
     }
   }, [message.isEditing]);
 
+  // Update edit content when message changes
+  useEffect(() => {
+    if (!message.isEditing) {
+      setEditContent(message.content);
+    }
+  }, [message.content, message.isEditing]);
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(message.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   const handleSaveEdit = () => {
-    if (editContent.trim() !== message.content) {
-      onEdit(message.id, editContent.trim());
-      onRegenerate(message.id);
+    const trimmedContent = editContent.trim();
+    
+    if (!trimmedContent) {
+      // Don't allow empty messages
+      return;
+    }
+    
+    if (trimmedContent !== message.content) {
+      // Show confirmation if content changed
+      setShowConfirm(true);
     } else {
+      // No change, just exit edit mode
       onToggleEdit(message.id);
     }
+  };
+
+  const handleConfirmEdit = () => {
+    onEdit(message.id, editContent.trim());
+    onRegenerate(message.id);
+    setShowConfirm(false);
   };
 
   const handleCancelEdit = () => {
     setEditContent(message.originalContent || message.content);
     onToggleEdit(message.id);
+    setShowConfirm(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -51,14 +84,25 @@ export default function MessageComponent({
       e.preventDefault();
       handleSaveEdit();
     } else if (e.key === "Escape") {
-      handleCancelEdit();
+      if (showConfirm) {
+        setShowConfirm(false);
+      } else {
+        handleCancelEdit();
+      }
     }
+  };
+
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setEditContent(e.target.value);
+    // Auto-resize
+    e.target.style.height = 'auto';
+    e.target.style.height = e.target.scrollHeight + 'px';
   };
 
   return (
     <div className={`group relative flex gap-4 p-6 ${
       message.role === "assistant" ? "bg-[#2f2f2f]" : "bg-transparent"
-    }`}>
+    } ${message.isEditing ? "ring-2 ring-[#10a37f] ring-opacity-50" : ""} transition-all duration-200`}>
       {/* Avatar */}
       <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
         message.role === "assistant" 
@@ -78,42 +122,126 @@ export default function MessageComponent({
 
       {/* Message Content */}
       <div className="flex-1 min-w-0">
-        <div className="font-semibold text-sm mb-2 capitalize text-[#ececf1]">
-          {message.role === "assistant" ? "ChatGPT" : "You"}
+        <div className="flex items-center gap-2 mb-2">
+          <div className="font-semibold text-sm capitalize text-[#ececf1]">
+            {message.role === "assistant" ? "ChatGPT" : "You"}
+          </div>
+          {message.originalContent && !message.isEditing && (
+            <span className="text-xs text-[#8e8ea0] bg-[#2a2a2a] px-2 py-0.5 rounded-full">
+              Edited
+            </span>
+          )}
         </div>
         
         {message.isEditing ? (
           <div className="space-y-3">
-            <textarea
-              ref={textareaRef}
-              value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="w-full bg-[#40414f] border border-[#565869] rounded-lg px-3 py-2 text-[#ececf1] resize-none focus:outline-none focus:ring-2 focus:ring-[#10a37f] focus:border-transparent"
-              rows={Math.max(3, editContent.split('\n').length)}
-              placeholder="Enter your message..."
-            />
-            <div className="flex gap-2">
-              <button
-                onClick={handleSaveEdit}
-                className="px-3 py-1.5 bg-[#10a37f] text-white rounded-md text-sm font-medium hover:bg-[#0e906e] transition-colors"
-              >
-                Save & Submit
-              </button>
-              <button
-                onClick={handleCancelEdit}
-                className="px-3 py-1.5 border border-[#565869] text-[#ececf1] rounded-md text-sm font-medium hover:bg-[#40414f] transition-colors"
-              >
-                Cancel
-              </button>
+            <div className="relative">
+              <textarea
+                ref={textareaRef}
+                value={editContent}
+                onChange={handleTextareaChange}
+                onKeyDown={handleKeyDown}
+                className="w-full bg-[#40414f] border border-[#565869] rounded-lg px-3 py-2 text-[#ececf1] resize-none focus:outline-none focus:ring-2 focus:ring-[#10a37f] focus:border-transparent min-h-[80px]"
+                placeholder="Enter your message..."
+                disabled={showConfirm}
+              />
+              {/* Character count */}
+              <div className="absolute bottom-2 right-2 text-xs text-[#8e8ea0]">
+                {editContent.length} chars
+              </div>
             </div>
+            
+            {/* Display original images if any */}
+            {message.images && message.images.length > 0 && (
+              <div className="flex items-center gap-2 text-sm text-[#8e8ea0] bg-[#2a2a2a] rounded-lg p-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+                  <circle cx="9" cy="9" r="2"/>
+                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                </svg>
+                <span>{message.images.length} image{message.images.length > 1 ? 's' : ''} attached</span>
+              </div>
+            )}
+            
+            {showConfirm ? (
+              <div className="bg-[#2a2a2a] border border-[#565869] rounded-lg p-4 space-y-3">
+                <div className="flex items-start gap-2 text-[#ececf1]">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0 mt-0.5 text-yellow-500">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                  <div>
+                    <div className="font-medium mb-1">Regenerate response?</div>
+                    <div className="text-sm text-[#8e8ea0]">
+                      This will update your message and regenerate all responses after it.
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleConfirmEdit}
+                    className="flex-1 px-3 py-2 bg-[#10a37f] text-white rounded-md text-sm font-medium hover:bg-[#0e906e] transition-colors"
+                  >
+                    Confirm & Regenerate
+                  </button>
+                  <button
+                    onClick={() => setShowConfirm(false)}
+                    className="flex-1 px-3 py-2 border border-[#565869] text-[#ececf1] rounded-md text-sm font-medium hover:bg-[#40414f] transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <button
+                  onClick={handleSaveEdit}
+                  disabled={!editContent.trim()}
+                  className="px-3 py-1.5 bg-[#10a37f] text-white rounded-md text-sm font-medium hover:bg-[#0e906e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  Save & Submit
+                </button>
+                <button
+                  onClick={handleCancelEdit}
+                  className="px-3 py-1.5 border border-[#565869] text-[#ececf1] rounded-md text-sm font-medium hover:bg-[#40414f] transition-colors flex items-center gap-2"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                  Cancel
+                </button>
+                <div className="flex-1"></div>
+                <div className="text-xs text-[#8e8ea0] flex items-center gap-2">
+                  <kbd className="px-1.5 py-0.5 bg-[#2a2a2a] border border-[#565869] rounded text-xs">Enter</kbd>
+                  <span>to save</span>
+                  <kbd className="px-1.5 py-0.5 bg-[#2a2a2a] border border-[#565869] rounded text-xs">Esc</kbd>
+                  <span>to cancel</span>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="prose prose-invert max-w-none text-[#ececf1] leading-7">
-            <div className="whitespace-pre-wrap break-words">
-              {/* {message.content} */}
-              <Markdown>{message.content}</Markdown>
-            </div>
+            {/* Show loading indicator if content is empty (streaming) */}
+            {!message.content && message.role === "assistant" ? (
+              <div className="flex items-center gap-2 text-[#8e8ea0] py-2">
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span className="text-sm">Thinking...</span>
+              </div>
+            ) : (
+              <div className="whitespace-pre-wrap break-words">
+                {/* {message.content} */}
+                <Markdown>{message.content}</Markdown>
+              </div>
+            )}
             
             {/* Display images if present */}
             {message.images && message.images.length > 0 && (
@@ -157,6 +285,49 @@ export default function MessageComponent({
                 ))}
               </div>
             )}
+            
+            {/* Display files if present */}
+            {message.files && message.files.length > 0 && (
+              <div className="mt-4 space-y-2 not-prose">
+                {message.files.map((file, index) => {
+                  const getFileIcon = (type: string) => {
+                    if (type.includes('pdf')) return '📄';
+                    if (type.includes('word') || type.includes('document')) return '📝';
+                    if (type.includes('csv') || type.includes('excel') || type.includes('sheet')) return '📊';
+                    if (type.includes('text')) return '📃';
+                    if (type.includes('json')) return '🔧';
+                    if (type.includes('markdown')) return '📋';
+                    return '📁';
+                  };
+
+                  return (
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 p-3 bg-[#2a2a2a] border border-[#424242] rounded-lg hover:border-[#565656] transition-colors"
+                    >
+                      <div className="text-2xl">{getFileIcon(file.type)}</div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm text-[#ececf1] truncate">
+                          {file.name}
+                        </div>
+                        <div className="text-xs text-[#8e8ea0]">
+                          {(file.originalSize / 1024 / 1024).toFixed(1)}MB
+                          {' • '}
+                          {file.contentLength.toLocaleString()} characters
+                        </div>
+                      </div>
+                      
+                      <div className="text-green-600 dark:text-green-400">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
@@ -164,21 +335,31 @@ export default function MessageComponent({
         {!message.isEditing && (
           <div className="flex items-center gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
-              onClick={() => navigator.clipboard.writeText(message.content)}
-              className="p-1.5 text-[#8e8ea0] hover:text-[#ececf1] hover:bg-[#40414f] rounded-md transition-colors"
-              title="Copy message"
+              onClick={handleCopy}
+              className={`p-1.5 rounded-md transition-colors ${
+                copied 
+                  ? 'text-[#10a37f] bg-[#10a37f]/10' 
+                  : 'text-[#8e8ea0] hover:text-[#ececf1] hover:bg-[#40414f]'
+              }`}
+              title={copied ? "Copied!" : "Copy message"}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
-                <path d="m4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-              </svg>
+              {copied ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                  <path d="m4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                </svg>
+              )}
             </button>
             
             {message.role === "user" && (
               <button
                 onClick={() => onToggleEdit(message.id)}
                 className="p-1.5 text-[#8e8ea0] hover:text-[#ececf1] hover:bg-[#40414f] rounded-md transition-colors"
-                title="Edit message"
+                title="Edit message and regenerate response"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -191,7 +372,7 @@ export default function MessageComponent({
               <button
                 onClick={() => onRegenerate(message.id)}
                 className="p-1.5 text-[#8e8ea0] hover:text-[#ececf1] hover:bg-[#40414f] rounded-md transition-colors"
-                title="Regenerate response"
+                title="Regenerate this response"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>

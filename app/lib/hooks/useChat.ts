@@ -14,6 +14,8 @@ export type Message = {
   isEditing?: boolean;
   originalContent?: string;
   images?: ProcessedImage[];
+  files?: ProcessedFile[];
+  isRegenerating?: boolean;
 };
 
 interface ProcessedImage {
@@ -25,6 +27,17 @@ interface ProcessedImage {
   width?: number;
   height?: number;
   format?: string;
+}
+
+interface ProcessedFile {
+  name: string;
+  size: number;
+  type: string;
+  content: string;
+  contentLength: number;
+  originalSize: number;
+  lastModified?: number;
+  [key: string]: any;
 }
 
 export type Chat = {
@@ -171,13 +184,14 @@ export default function useChats() {
 
   // Placeholder for regenerateFromMessage - will be defined after sendMessage
   const addMessage = useCallback(
-    (chatId: string, role: Message["role"], content: string, images?: ProcessedImage[]) => {
+    (chatId: string, role: Message["role"], content: string, images?: ProcessedImage[], files?: ProcessedFile[]) => {
       const m: Message = {
         id: uid(),
         role,
         content,
         createdAt: new Date().toISOString(),
         ...(images && images.length > 0 && { images }),
+        ...(files && files.length > 0 && { files }),
       };
       setChats((s) =>
         s.map((c) =>
@@ -197,14 +211,15 @@ export default function useChats() {
   );
 
   const sendMessage = useCallback(
-    async (chatId: string, content: string, images?: File[], model: ModelType = 'gemini-2.5-flash') => {
+    async (chatId: string, content: string, images?: File[], files?: ProcessedFile[], model: ModelType = 'gemini-2.5-flash') => {
       console.log('Sending message to chat:', chatId);
       console.log('Content:', content);
       console.log('Images:', images);
+      console.log('Files:', files);
       console.log('Model:', model);
       
       
-      if (!content.trim() && (!images || images.length === 0)) return;
+      if (!content.trim() && (!images || images.length === 0) && (!files || files.length === 0)) return;
       if (isChatLoading) return;
 
       setIsChatLoading(true);
@@ -236,8 +251,14 @@ export default function useChats() {
         }
       }
 
-      // Add user message with images
-      const userMessage = addMessage(chatId, "user", content, processedImages.length > 0 ? processedImages : undefined);
+      // Add user message with images and files
+      const userMessage = addMessage(
+        chatId, 
+        "user", 
+        content, 
+        processedImages.length > 0 ? processedImages : undefined,
+        files && files.length > 0 ? files : undefined
+      );
       
       // Get current chat messages to send to AI
       const currentChat = chats.find(c => c.id === chatId);
@@ -277,10 +298,12 @@ export default function useChats() {
               role: msg.role,
               content: msg.content,
               ...(msg.images && { images: msg.images }),
+              ...(msg.files && { files: msg.files }),
             })),
             userId: user?.id, // Pass user ID for memory context
             model, // Pass selected model
             ...(processedImages.length > 0 && { images: processedImages }),
+            ...(files && files.length > 0 && { files }),
           }),
         });
 
@@ -334,7 +357,7 @@ export default function useChats() {
   );
 
   const regenerateFromMessage = useCallback(
-    async (chatId: string, messageId: string) => {
+    async (chatId: string, messageId: string, model: ModelType = 'gemini-2.5-flash') => {
       if (!user?.id) return;
 
       const chat = chats.find(c => c.id === chatId);
@@ -343,7 +366,9 @@ export default function useChats() {
       const messageIndex = chat.messages.findIndex(m => m.id === messageId);
       if (messageIndex === -1) return;
 
-      // Remove all messages after the edited message
+      const editedMessage = chat.messages[messageIndex];
+      
+      // Remove all messages after the edited message (including assistant responses)
       const messagesUpToEdit = chat.messages.slice(0, messageIndex + 1);
       
       // Update chat with trimmed messages
@@ -360,12 +385,108 @@ export default function useChats() {
       );
 
       // If the edited message is from user, regenerate AI response
-      const editedMessage = messagesUpToEdit[messageIndex];
       if (editedMessage.role === 'user') {
-        await sendMessage(chatId, editedMessage.content);
+        // Small delay to allow UI to update
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Regenerate with the edited message content and images
+        if (isChatLoading) return;
+        
+        setIsChatLoading(true);
+
+        try {
+          // Get messages up to the edited one for context
+          const contextMessages = messagesUpToEdit;
+
+          // Create assistant message placeholder
+          const assistantMessageId = uid();
+          const assistantMessage: Message = {
+            id: assistantMessageId,
+            role: "assistant",
+            content: "",
+            createdAt: new Date().toISOString(),
+          };
+
+          // Add empty assistant message to show loading
+          setChats((s) =>
+            s.map((c) =>
+              c.id === chatId
+                ? {
+                    ...c,
+                    messages: [...c.messages, assistantMessage],
+                    updatedAt: new Date().toISOString(),
+                  }
+                : c
+            )
+          );
+
+          // Call AI API with user context for memory
+          const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              messages: contextMessages.map(msg => ({
+                role: msg.role,
+                content: msg.content,
+                ...(msg.images && { images: msg.images }),
+              })),
+              userId: user?.id,
+              model,
+              ...(editedMessage.images && editedMessage.images.length > 0 && { 
+                images: editedMessage.images 
+              }),
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to get AI response');
+          }
+
+          const reader = response.body?.getReader();
+          if (!reader) {
+            throw new Error('No response body');
+          }
+
+          const decoder = new TextDecoder();
+          let accumulatedContent = '';
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value);
+            accumulatedContent += chunk;
+            
+            // Update the assistant message with accumulated content
+            setChats((s) =>
+              s.map((c) =>
+                c.id === chatId
+                  ? {
+                      ...c,
+                      messages: c.messages.map(m =>
+                        m.id === assistantMessageId
+                          ? { ...m, content: accumulatedContent }
+                          : m
+                      ),
+                      updatedAt: new Date().toISOString(),
+                    }
+                  : c
+              )
+            );
+          }
+        } catch (error) {
+          console.error('Error regenerating message:', error);
+          
+          // Add error message
+          addMessage(chatId, "assistant", "Sorry, I encountered an error while regenerating. Please try again.");
+        } finally {
+          setIsChatLoading(false);
+        }
       }
     },
-    [chats, user?.id, sendMessage]
+    [chats, user?.id, isChatLoading, addMessage]
   );
   const getActiveChat = chats.find((c) => c.id === activeChatId) ?? null;
 

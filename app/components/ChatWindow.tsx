@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import MessageComponent from "./MessageComponent";
 import type { Chat, Message } from "../lib/hooks/useChat";
 
@@ -20,6 +20,17 @@ export default function ChatWindow({
   onToggleEditMessage,
   onRegenerateFromMessage
 }: Props) {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (chat && chat.messages.length > 0) {
+      // Smooth scroll to bottom
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [chat?.messages.length]);
+
   return (
     <div className="flex-1 flex flex-col bg-[#212121] overflow-hidden">
       {/* Header */}
@@ -56,7 +67,11 @@ export default function ChatWindow({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto" id="messages">
+      <div 
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto" 
+        id="messages"
+      >
         {!chat || chat.messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center px-4">
             <div className="text-center max-w-3xl w-full animate-fadeIn">
@@ -79,6 +94,8 @@ export default function ChatWindow({
                     isLast={index === chat.messages.length - 1}
                   />
                 ))}
+                {/* Invisible element for auto-scroll */}
+                <div ref={messagesEndRef} />
               </div>
             </div>
           </div>

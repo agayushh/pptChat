@@ -12,8 +12,8 @@ import {
 export async function POST(req: Request) {
   try {
     console.log('=== Chat API Request ===');
-    const { messages, userId, model = 'gemini-2.5-flash', images = [] } = await req.json();
-    console.log('Messages:', messages?.length, 'Model:', model);
+    const { messages, userId, model = 'gemini-2.5-flash', images = [], files = [] } = await req.json();
+    console.log('Messages:', messages?.length, 'Model:', model, 'Files:', files?.length);
     
     // Get user ID from Clerk auth if not provided
     let currentUserId = userId;
@@ -89,55 +89,100 @@ ${contextSummary}`;
       console.log(`Trimmed conversation: ${messages.length} -> ${processedMessages.length} messages`);
     }
 
-    // Define types for processed images
+    // Define types for processed images and files
     interface ProcessedImage {
       mimeType: string;
       base64: string;
       [key: string]: unknown;
     }
 
-    // Prepare messages with images for vision models
-    const formattedMessages = processedMessages.map((message: { role: 'user' | 'assistant'; content: string; images?: ProcessedImage[] }) => {
-      if (message.role === 'user' && message.images && message.images.length > 0) {
-        // For vision-enabled models, format message with images
-        const content = [
-          { type: 'text', text: message.content },
-          ...message.images.map((image: ProcessedImage) => ({
-            type: 'image',
-            image: `data:${image.mimeType};base64,${image.base64}`,
-          }))
-        ];
-        return { role: message.role, content };
+    interface ProcessedFile {
+      name: string;
+      size: number;
+      type: string;
+      content: string;
+      contentLength: number;
+      [key: string]: unknown;
+    }
+
+    // Prepare messages with images and files for vision models
+    const formattedMessages = processedMessages.map((message: { 
+      role: 'user' | 'assistant'; 
+      content: string; 
+      images?: ProcessedImage[];
+      files?: ProcessedFile[];
+    }) => {
+      if (message.role === 'user') {
+        const contentParts: any[] = [];
+        
+        // Add the main text content
+        let textContent = message.content;
+        
+        // If there are files, prepend their content to the message
+        if (message.files && message.files.length > 0) {
+          const filesContext = message.files.map((file: ProcessedFile) => 
+            `\n\n--- Document: ${file.name} (${file.type}) ---\n${file.content}\n--- End of ${file.name} ---`
+          ).join('\n');
+          
+          textContent = `${message.content}\n\n[User has attached the following document(s):${filesContext}]`;
+        }
+        
+        contentParts.push({ type: 'text', text: textContent });
+        
+        // Add images if present
+        if (message.images && message.images.length > 0) {
+          contentParts.push(
+            ...message.images.map((image: ProcessedImage) => ({
+              type: 'image',
+              image: `data:${image.mimeType};base64,${image.base64}`,
+            }))
+          );
+        }
+        
+        return { 
+          role: message.role, 
+          content: contentParts.length > 1 ? contentParts : textContent 
+        };
       }
+      
       return {
         role: message.role,
         content: message.content,
       };
     });
 
-    // Add images to the latest message if provided
-    if (images && images.length > 0 && processedMessages.length > 0) {
+    // Add images and files to the latest message if provided
+    if ((images && images.length > 0) || (files && files.length > 0)) {
       const lastMessageIndex = formattedMessages.length - 1;
       const lastMessage = formattedMessages[lastMessageIndex];
       
       if (lastMessage.role === 'user') {
-        if (Array.isArray(lastMessage.content)) {
-          // Already has content array, add images
+        // Ensure content is an array
+        if (!Array.isArray(lastMessage.content)) {
+          lastMessage.content = [{ type: 'text', text: lastMessage.content as string }];
+        }
+        
+        // Add file content to text if present
+        if (files && files.length > 0) {
+          const filesContext = files.map((file: ProcessedFile) => 
+            `\n\n--- Document: ${file.name} (${file.type}) ---\n${file.content}\n--- End of ${file.name} ---`
+          ).join('\n');
+          
+          // Update the text part
+          const textPart = lastMessage.content.find((p: any) => p.type === 'text');
+          if (textPart) {
+            textPart.text += `\n\n[User has attached the following document(s):${filesContext}]`;
+          }
+        }
+        
+        // Add images if present
+        if (images && images.length > 0) {
           lastMessage.content.push(
             ...images.map((image: ProcessedImage) => ({
               type: 'image',
               image: `data:${image.mimeType};base64,${image.base64}`,
             }))
           );
-        } else {
-          // Convert to content array with text and images
-          lastMessage.content = [
-            { type: 'text', text: lastMessage.content as string },
-            ...images.map((image: ProcessedImage) => ({
-              type: 'image',
-              image: `data:${image.mimeType};base64,${image.base64}`,
-            }))
-          ];
         }
       }
     }
