@@ -96,16 +96,16 @@ export default function Composer({ onSend, disabled }: Props) {
     )
       return;
     setSending(true);
+    setValue("");
+    setSelectedImages([]);
+    setSelectedFiles([]);
+    setShowFileUpload(false);
     try {
       await onSend(
         value.trim(),
         selectedImages.length > 0 ? selectedImages : undefined,
         selectedFiles.length > 0 ? selectedFiles : undefined
       );
-      setValue("");
-      setSelectedImages([]);
-      setSelectedFiles([]);
-      setShowFileUpload(false);
       if (imageInputRef.current) {
         imageInputRef.current.value = "";
       }
