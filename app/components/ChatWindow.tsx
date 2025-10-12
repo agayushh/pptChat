@@ -81,23 +81,19 @@ export default function ChatWindow({
             </div>
           </div>
         ) : (
-          <div className="w-full h-full overflow-y-auto flex flex-col">
-            <div className="flex-1 flex items-center justify-center min-h-0">
-              <div className="w-full max-w-3xl mx-auto px-4 py-8">
-                {chat.messages.map((m: Message, index) => (
-                  <MessageComponent
-                    key={m.id}
-                    message={m}
-                    onEdit={(messageId, newContent) => onEditMessage?.(messageId, newContent)}
-                    onToggleEdit={(messageId) => onToggleEditMessage?.(messageId)}
-                    onRegenerate={(messageId) => onRegenerateFromMessage?.(messageId)}
-                    isLast={index === chat.messages.length - 1}
-                  />
-                ))}
-                {/* Invisible element for auto-scroll */}
-                <div ref={messagesEndRef} />
-              </div>
-            </div>
+          <div className="w-full max-w-3xl mx-auto px-4 py-8">
+            {chat.messages.map((m: Message, index) => (
+              <MessageComponent
+                key={m.id}
+                message={m}
+                onEdit={(messageId, newContent) => onEditMessage?.(messageId, newContent)}
+                onToggleEdit={(messageId) => onToggleEditMessage?.(messageId)}
+                onRegenerate={(messageId) => onRegenerateFromMessage?.(messageId)}
+                isLast={index === chat.messages.length - 1}
+              />
+            ))}
+            {/* Invisible element for auto-scroll */}
+            <div ref={messagesEndRef} />
           </div>
         )}
       </div>
