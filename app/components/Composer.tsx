@@ -95,22 +95,32 @@ export default function Composer({ onSend, disabled }: Props) {
       sending
     )
       return;
-    setSending(true);
+    
+    // Store values before clearing
+    const messageContent = value.trim();
+    const imagesToSend = selectedImages.length > 0 ? [...selectedImages] : undefined;
+    const filesToSend = selectedFiles.length > 0 ? [...selectedFiles] : undefined;
+    
+    // Clear inputs immediately for better UX
     setValue("");
     setSelectedImages([]);
     setSelectedFiles([]);
     setShowFileUpload(false);
+    if (imageInputRef.current) {
+      imageInputRef.current.value = "";
+    }
+    
+    setSending(true);
     try {
-      await onSend(
-        value.trim(),
-        selectedImages.length > 0 ? selectedImages : undefined,
-        selectedFiles.length > 0 ? selectedFiles : undefined
-      );
-      if (imageInputRef.current) {
-        imageInputRef.current.value = "";
-      }
+      await onSend(messageContent, imagesToSend, filesToSend);
+    } catch (error) {
+      console.error('Error sending message:', error);
     } finally {
       setSending(false);
+      // Ensure textarea can receive focus again
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+      }
     }
   }
 
