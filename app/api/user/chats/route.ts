@@ -1,54 +1,40 @@
-import { auth } from '@clerk/nextjs/server'
+import { db } from '@/db';
+import { chatsTable, userTable } from '@/db/schema/schema';
+import { auth, currentUser } from '@clerk/nextjs/server'
+import { eq } from 'drizzle-orm';
 import { NextRequest, NextResponse } from 'next/server'
-import connectDB from '@/app/lib/mongodb'
-import User from '@/app/lib/models/User'
 
 export async function GET() {
+  const user = await currentUser();
+  if(!user){
+    return NextResponse.json({
+      message: "User not found",
+    }, {
+      status: 404
+    })
+  }
+  const chats = await db.select().from(chatsTable).where(eq(chatsTable.userId, user.id));
   try {
-    const { userId } = await auth()
-
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    await connectDB()
-    const user = await User.findOne({ clerkId: userId })
-
-    if (!user) {
-      return NextResponse.json({ chats: [] })
-    }
-
-    return NextResponse.json({ chats: user.chats || [] })
+    return NextResponse.json({
+      message: "Chats fetched successfully",
+      chats: chats
+    }, {
+      status: 200
+    })
   } catch (error) {
-    console.error('Error fetching user chats:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({
+      message: "Error while fetching chats",
+      error: error
+    }, {
+      status: 500
+    })
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth()
-
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const { chats } = await request.json()
-
-    await connectDB()
     
-    const user = await User.findOne({ clerkId: userId })
-    
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
-    }
-
-    user.chats = chats
-    await user.save()
-
-    return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error saving user chats:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    
   }
 }

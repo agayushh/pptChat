@@ -1,41 +1,44 @@
-import { auth, currentUser } from '@clerk/nextjs/server'
-import { NextResponse } from 'next/server'
-import connectDB from '@/app/lib/mongodb'
-import User from '@/app/lib/models/User'
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { db } from "@/db";
+import { NextRequest, NextResponse } from "next/server";
+import { userTable } from "@/db/schema/schema";
+import { eq } from "drizzle-orm";
 
-export async function POST() {
-  try {
-    const { userId } = await auth()
-    const user = await currentUser()
+export async function GET(request: NextRequest){
+    try {
+        const user = await currentUser();
+        if(!user){
+            return NextResponse.json({
+                message: "User not found"
+            }, {
+                status: 404
+            })
+        }
 
-    if (!userId || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        const existingUser = await db.select().from(userTable).where(eq(userTable.clerkId, user.id))
+        if(existingUser){
+            return NextResponse.json({
+                message: "User already exists"
+            }, {
+                status: 200
+            })
+        }
+
+        
+         
+        return NextResponse.json({
+            message: "User found",
+            user: user
+        }, {
+            status: 200
+        })
+    } catch (error) {
+        return NextResponse.json({
+            message: "Error while syncing user",
+            error: error
+        }, {
+            status: 500
+        })
     }
-
-    await connectDB()
-
-    // Check if user already exists
-    const existingUser = await User.findOne({ clerkId: userId })
-
-    if (existingUser) {
-      return NextResponse.json({ user: existingUser })
-    }
-
-    // Create new user
-    const newUser = new User({
-      clerkId: userId,
-      email: user.emailAddresses[0]?.emailAddress || '',
-      firstName: user.firstName || '',
-      lastName: user.lastName || '',
-      avatar: user.imageUrl || '',
-      chats: [],
-    })
-
-    await newUser.save()
-
-    return NextResponse.json({ user: newUser })
-  } catch (error) {
-    console.error('Error syncing user:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  }
 }
+    
