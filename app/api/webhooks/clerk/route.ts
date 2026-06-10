@@ -36,7 +36,7 @@ export async function POST(req: Request) {
         event.data;
       await db.insert(userTable).values({
         clerkId: id,
-        email: email_addresses[0].email_address,
+        email: email_addresses[0]?.email_address || "",
         name: `${first_name} ${last_name}`,
         avatar: image_url,
       });
@@ -54,7 +54,8 @@ export async function POST(req: Request) {
         })
         .where(eq(userTable.clerkId, id));
     }
-    if (event.type === "user.deleted") {
+
+      if (event.type === "user.deleted") {
       const { id } = event.data;
       if (!id) {
         return Response.json({ message: "Missing user id" }, { status: 400 });
@@ -62,7 +63,8 @@ export async function POST(req: Request) {
 
       await db.delete(userTable).where(eq(userTable.clerkId, id));
     }
-  } catch (error) {
+  }
+  catch (error) {
     return Response.json(
       {
         message: "Error while webhook",
@@ -85,3 +87,12 @@ export async function POST(req: Request) {
     },
   );
 }
+
+
+// app/api/webhooks/clerk/route.ts
+
+// export async function GET() {
+//   return Response.json({
+//     success: true,
+//   });
+// }
