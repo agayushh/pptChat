@@ -1,162 +1,164 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useUser } from '@clerk/nextjs'
-import Sidebar from "../components/ChatSidebar";
-import ChatWindow from "../components/ChatWindow";
-import Composer from "../components/Composer";
-import MemoryPanel from "../components/MemoryPanel";
-import useChats from "../lib/hooks/useChat";
-import type { ProcessedFile } from "../types/files";
+import Sidebar from "../components/Sidebar";
+import { UserButton } from "@clerk/nextjs";
+import { ChevronDown, Plus, Mic, Image, Pen, Globe } from "lucide-react";
+import { useState } from "react";
 
-export default function ChatPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const { user, isLoaded } = useUser()
-  
-  const {
-    chats,
-    activeChatId,
-    getActiveChat,
-    setActiveChatId,
-    newChat,
-    deleteChat,
-    renameChat,
-    sendMessage,
-    editMessage,
-    toggleEditMessage,
-    regenerateFromMessage,
-    isLoading: chatsLoading,
-  } = useChats();
+export default function Page() {
+  const [model, setModel] = useState("ChatGPT");
+  const [inputValue, setInputValue] = useState("");
+  const [showModelDropdown, setShowModelDropdown] = useState(false);
 
-  function handleToggleSidebar() {
-    setSidebarOpen(prev => {
-      localStorage.setItem('sidebarOpen', (!prev).toString());
-      return !prev;
-    });
-  }
-
-  // Detect mobile screen size
-  useEffect(() => {
-    const checkMobile = () => {
-      const mobile = window.innerWidth < 768;
-      setIsMobile(mobile);
-      // On desktop, restore saved preference; on mobile, default to closed
-      if (!mobile) {
-        const savedSidebarOpen = localStorage.getItem('sidebarOpen');
-        setSidebarOpen(savedSidebarOpen !== 'false');
-      } else {
-        setSidebarOpen(false);
-      }
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // Sync user data when user loads
-  useEffect(() => {
-    if (isLoaded && user) {
-      // Sync user with backend
-      fetch('/api/user/sync', {
-        method: 'POST',
-      }).catch(console.error);
+  const handlePillClick = (action: string) => {
+    if (action === "image") {
+      setInputValue("Create an image of ");
+    } else if (action === "write") {
+      setInputValue("Help me write ");
+    } else if (action === "search") {
+      setInputValue("Look up ");
     }
-  }, [isLoaded, user]);
-
-  // Keyboard shortcut for sidebar toggle
-  useEffect(() => {
-    const savedSidebarOpen = localStorage.getItem('sidebarOpen');
-    if (savedSidebarOpen) {
-      setSidebarOpen(savedSidebarOpen === 'true');
-    }
-    
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'S') {
-        event.preventDefault();
-        handleToggleSidebar();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  const handleSend = async (content: string, images?: File[], files?: ProcessedFile[]) => {
-    if (!activeChatId) return;
-    await sendMessage(activeChatId, content, images, files);
   };
 
-  // Show loading spinner while user data is loading
-  if (!isLoaded || chatsLoading) {
-    return (
-      <div className="h-screen w-screen flex items-center justify-center bg-[#212121]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#10a37f]"></div>
-          <div className="text-[#8e8ea0] text-sm">
-            {!isLoaded ? "Loading user..." : "Loading chats..."}
+  return (
+    <div className="bg-black text-[#ececf1] h-screen w-screen flex overflow-hidden font-sans">
+      {/* Sidebar */}
+      <Sidebar />
+
+      {/* Main chat window */}
+      <div className="flex-1 flex flex-col h-full bg-black relative">
+        {/* Top bar */}
+        <header className="flex items-center justify-between px-6 py-4 bg-black/50 backdrop-blur-sm z-10">
+          <div className="relative">
+            <button
+              onClick={() => setShowModelDropdown(!showModelDropdown)}
+              className="flex items-center gap-1 hover:bg-white/5 px-2.5 py-1.5 rounded-lg text-sm font-semibold transition-all text-white/90 hover:text-white"
+            >
+              <span>{model}</span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 text-white/40 transition-transform duration-200 ${showModelDropdown ? "rotate-180" : ""}`}
+              />
+            </button>
+
+            {showModelDropdown && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setShowModelDropdown(false)}
+                />
+                <div className="absolute left-0 mt-1.5 w-40 rounded-xl bg-[#212121] border border-white/5 shadow-2xl p-1 z-20 animate-in fade-in slide-in-from-top-1 duration-100">
+                  <button
+                    onClick={() => {
+                      setModel("ChatGPT");
+                      setShowModelDropdown(false);
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/5 text-xs font-semibold transition-all"
+                  >
+                    ChatGPT
+                  </button>
+                  <button
+                    onClick={() => {
+                      setModel("pptChat");
+                      setShowModelDropdown(false);
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-white/5 text-xs font-semibold transition-all"
+                  >
+                    pptChat
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="flex items-center gap-4">
+            <UserButton
+              appearance={{
+                elements: {
+                  userButtonAvatarBox:
+                    "w-7 h-7 rounded-full border border-white/10",
+                },
+              }}
+            />
+          </div>
+        </header>
+
+        {/* Chat Home body */}
+        <div className="flex-1 flex flex-col items-center justify-center px-4 max-w-3xl mx-auto w-full pb-28 select-none">
+          <h1 className="text-3xl font-medium tracking-normal text-white mb-6 text-center">
+            Where should we begin?
+          </h1>
+
+          {/* Prompt container */}
+          <div className="w-full bg-[#212121] rounded-full py-1.5 pl-4 pr-1.5 flex items-center gap-3 border border-transparent focus-within:border-white/5 transition-all shadow-md">
+            {/* Plus button */}
+            <button
+              className="p-1.5 rounded-full text-white/60 hover:text-white transition-all cursor-pointer"
+              title="Attach files"
+            >
+              <Plus className="w-5 h-5 stroke-[2.5]" />
+            </button>
+
+            {/* Input field */}
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder="Ask anything"
+              className="flex-1 bg-transparent outline-none text-white placeholder-white/35 text-[15px] py-1.5 leading-relaxed"
+            />
+
+            <div className="flex items-center gap-1.5">
+              {/* Mic button */}
+              <button
+                className="p-2 rounded-full text-white/60 hover:text-white transition-all cursor-pointer"
+                title="Voice input"
+              >
+                <Mic className="w-4.5 h-4.5" />
+              </button>
+
+              {/* Blue voice button */}
+              <button
+                className="w-8 h-8 rounded-full bg-[#1066e5] hover:bg-[#1066e5]/90 text-white transition-all flex items-center justify-center shadow-lg cursor-pointer"
+                title="Voice mode"
+              >
+                <div className="flex items-center gap-[2.5px] h-3">
+                  <span className="w-[2px] h-1.5 bg-white rounded-full"></span>
+                  <span className="w-[2px] h-3 bg-white rounded-full"></span>
+                  <span className="w-[2px] h-2.5 bg-white rounded-full"></span>
+                  <span className="w-[2px] h-1 bg-white rounded-full"></span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Quick pills */}
+          <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
+            <button
+              onClick={() => handlePillClick("image")}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-transparent hover:bg-white/5 text-white/60 hover:text-white text-xs font-normal transition-all cursor-pointer"
+            >
+              <Image className="w-3.5 h-3.5 text-white/50" />
+              <span>Create an image</span>
+            </button>
+
+            <button
+              onClick={() => handlePillClick("write")}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-transparent hover:bg-white/5 text-white/60 hover:text-white text-xs font-normal transition-all cursor-pointer"
+            >
+              <Pen className="w-3.5 h-3.5 text-white/50" />
+              <span>Write or edit</span>
+            </button>
+
+            <button
+              onClick={() => handlePillClick("search")}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-transparent hover:bg-white/5 text-white/60 hover:text-white text-xs font-normal transition-all cursor-pointer"
+            >
+              <Globe className="w-3.5 h-3.5 text-white/50" />
+              <span>Look something up</span>
+            </button>
           </div>
         </div>
       </div>
-    );
-  }
-
-  return (
-    <div className="h-screen w-screen flex bg-[#212121] text-white overflow-hidden">
-      {/* Mobile backdrop */}
-      {sidebarOpen && isMobile && (
-        <div 
-          className="fixed inset-0 bg-black/60 z-30 md:hidden backdrop-blur-sm transition-opacity duration-300"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-      
-      {/* Sidebar */}
-      <Sidebar
-        chats={chats}
-        activeChatId={activeChatId}
-        onNew={() => {
-          newChat();
-          if (isMobile) setSidebarOpen(false);
-        }}
-        onSelect={(id) => {
-          setActiveChatId(id);
-          if (isMobile) setSidebarOpen(false);
-        }}
-        onDelete={(id) => deleteChat(id)}
-        onRename={(id, title) => renameChat(id, title)}
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        user={user}
-      />
-      
-      <div className="flex-1 flex flex-col">
-        <ChatWindow 
-          chat={getActiveChat} 
-          sidebarOpen={sidebarOpen}
-          onToggleSidebar={handleToggleSidebar}
-          onEditMessage={(messageId, newContent) => {
-            if (activeChatId) {
-              editMessage(activeChatId, messageId, newContent);
-            }
-          }}
-          onToggleEditMessage={(messageId) => {
-            if (activeChatId) {
-              toggleEditMessage(activeChatId, messageId);
-            }
-          }}
-          onRegenerateFromMessage={(messageId) => {
-            if (activeChatId) {
-              regenerateFromMessage(activeChatId, messageId);
-            }
-          }}
-        />
-                <Composer onSend={handleSend} />
-      </div>
-      
-      {/* Memory Panel */}
-      <MemoryPanel />
     </div>
   );
 }
